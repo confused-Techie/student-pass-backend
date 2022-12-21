@@ -36,7 +36,7 @@ async function getAllEvents() {
     sqlStorage ??= setupSQL();
 
     const command = await sqlStorage`
-      SELECT name, actions
+      SELECT *
       FROM events
     `;
 
