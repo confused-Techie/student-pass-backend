@@ -1,12 +1,33 @@
 {
   "name": "student-pass-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Backend Service for Student Pass",
   "main": "src/server.js",
   "scripts": {
+    "start": "node ./src/server.js",
+    "start:dev": "cross-env STATUS=dev node ./src/server.js",
+    "migrations": "pg-migrations apply --directory ./src/dev/migrations",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "pg": {
+    "test": {
+      "migrationsScript": [
+        "npm",
+        "run",
+        "migrations"
+      ],
+      "image": "postgres:14.5-alpine"
+    }
+  },
+  "author": "Anthony Malis",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0"
+  },
+  "devDependencies": {
+    "@databases/pg-migrations": "^5.0.1",
+    "@databases/pg-test": "^3.1.2",
+    "cross-env": "^7.0.3"
+  }
 }
