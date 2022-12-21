@@ -18,4 +18,7 @@ INSERT INTO events (name, actions)
 VALUES (
   'Tardy: 1st Period',
   '{"call-parent", "print-badge"}'
+), (
+  'Ditched Lunch',
+  '{"call-parent"}'
 );

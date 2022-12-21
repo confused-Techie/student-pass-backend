@@ -26,6 +26,7 @@ async function setup() {
 
   const app = require("./main.js");
   const { port } = require("./config.js").getConfig();
+  const database = require("./database.js");
 
   const serve = app.listen(port, () => {
     console.log(`Student Pass Backend Listening on Port ${port}`);
@@ -33,6 +34,7 @@ async function setup() {
 
   const exterminate = async function (calle) {
     console.log(`${callee} signal received: closing HTTP Server`);
+    await database.shutdownSQL();
     if (dbTeardown) {
       await dbTeardown();
     }

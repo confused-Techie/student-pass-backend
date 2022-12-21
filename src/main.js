@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const rateLimit = require("express-rate-limit");
 const { MemoryStore } = require("express-rate-limit");
+const handlers = require("./handlers.js");
 
 const genericLimit = rateLimit({
   windowMs: 15 * 60 * 100, // 15 minutes
@@ -68,7 +69,7 @@ app.options("/api/scans", (req, res) => {
 });
 
 app.get("/api/events", genericLimit, async (req, res) => {
-
+  await handlers.getEvents(req, res);
 });
 
 app.post("/api/events", genericLimit, async (req, res) => {
