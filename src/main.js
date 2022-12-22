@@ -3,6 +3,7 @@ const app = express();
 const rateLimit = require("express-rate-limit");
 const { MemoryStore } = require("express-rate-limit");
 const handlers = require("./handlers.js");
+const server_version = require("../package.json").version;
 
 const genericLimit = rateLimit({
   windowMs: 15 * 60 * 100, // 15 minutes
@@ -29,7 +30,7 @@ app.use((req, res, next) => {
 });
 
 app.get("/", genericLimit, (req, res) => {
-  res.status(200).json({ message: "Hello World, we are running the beta!" });
+  res.status(200).json({ message: `The Server is up and running: ${server_version}` });
 });
 
 app.options("/", (req, res) => {
@@ -68,12 +69,14 @@ app.options("/api/scans", (req, res) => {
 
 });
 
+// Used to retreive all existing configured events.
 app.get("/api/events", genericLimit, async (req, res) => {
   await handlers.getEvents(req, res);
 });
 
+// Used to modify the existing events, either creating a new one, or editing an existing one.
 app.post("/api/events", genericLimit, async (req, res) => {
-
+  await handlers.modifyEvents(req, res);
 });
 
 app.delete("/api/events", genericLimit, async (req, res) => {

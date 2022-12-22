@@ -58,8 +58,68 @@ async function getAllEvents() {
   }
 }
 
+async function getEventByID(id) {
+  try {
+    sqlStorage ??= setupSQL();
+
+    const command = await sqlStorage`
+      SELECT *
+      FROM events
+      WHERE id = ${id}
+    `;
+
+    return command.count !== 0
+      ? { ok: true, content: command[0] }
+      : {
+          ok: false,
+          content: `Event For ID: ${id} Not found`,
+          short: "Not Found",
+          detail: `getEventByID Failed to lookup event ${id}`
+        };
+  } catch(err) {
+    return {
+      ok: false,
+      content: err,
+      short: "Server Error",
+      detail: "getEventByID() Caught an error during event lookup"
+    };
+  }
+}
+
+async function setEventByID(id, name, actions) {
+  try {
+    sqlStorage ??= setupSQL();
+    console.log(`${sqlStorage.array(actions)}`);
+    const command = await sqlStorage`
+      UPDATE events
+      SET name = ${name} AND
+      SET actions = ${sqlStorage`'{${actions}}'`}
+      WHERE id = ${id}
+      RETURNING *;
+    `;
+
+    return command.count !== 0
+      ? { ok: true, content: command[0] }
+      : {
+          ok: false,
+          content: `setEventByID Failed to insert new Data!`,
+          short: "Server Error",
+          detail: "setEventByID Failed to insert new data."
+        };
+  } catch(err) {
+    return {
+      ok: false,
+      content: err,
+      short: "Server Error",
+      detail: "setEventByID() Caught an Error during event write"
+    };
+  }
+}
+
 
 module.exports = {
   shutdownSQL,
   getAllEvents,
+  getEventByID,
+  setEventByID,
 };

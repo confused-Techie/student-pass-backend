@@ -1,9 +1,9 @@
 
 async function handleError(req, res, statusObj) {
-  console.log(statusObj.content.content);
+  console.log(statusObj.content);
   res.status(500).json({
-    message: statusObj.content.short,
-    detail: statusObj.content.detail
+    message: statusObj.short,
+    detail: statusObj.detail
   });
 }
 

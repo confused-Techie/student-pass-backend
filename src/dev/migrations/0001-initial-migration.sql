@@ -2,7 +2,10 @@
 
 CREATE TABLE students (
   student_number REAL PRIMARY KEY,
-  student_name VARCHAR(128) NOT NULL
+  student_first_name VARCHAR(128) NOT NULL,
+  student_last_name VARCHAR(128) NOT NULL,
+  contact_number VARCHAR(128),
+  contact_email VARCHAR(128)
 );
 
 -- Create Staff Table
@@ -30,6 +33,6 @@ CREATE TABLE schools (
 
 CREATE TABLE events (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(128) NOT NULL,
+  name VARCHAR(128) NOT NULL UNIQUE,
   actions VARCHAR(128)[]
 );
