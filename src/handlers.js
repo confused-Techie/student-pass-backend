@@ -2,6 +2,7 @@
 const database = require("./database.js");
 const common_handler = require("./common_handler.js");
 const utils = require("./utils.js");
+const query = require("./query.js");
 
 async function getEvents(req, res) {
   let params = {};
@@ -16,58 +17,70 @@ async function getEvents(req, res) {
     return;
   }
 
-  res.status(200).json(events.content);
+  let returnObj = await utils.combineEvents(events.content);
+
+  res.status(200).json(returnObj);
 }
 
-async function modifyEvents(req, res) {
+async function getAnEvent(req, res) {
   let params = {
-    type: req.query.type, // The action to take, valid 'update' or 'new'
-    id: req.query.id, // Needed for type = 'update'
-    name: req.query.name, // Needed for either
-    actions: req.query.actions, // Needed for either, 'Array' String seperated by commas.
+    eventID: query.eventID(req),
   };
 
-  if (params.type === "update") {
-    let eventData = await database.getEventByID(params.id);
+  // handle auth
 
-    if (!eventData.ok) {
-      await common_handler.handleError(req, res, eventData);
-      return;
-    }
+  let eventObj = await database.getSingleEvent(params.eventID);
 
-    let actions = await utils.decodeQueryActions(params.actions);
-
-    if (!actions.ok) {
-      await common_handler.handleError(req, res, actions);
-      return;
-    }
-
-    let write = await database.setEventByID(params.id, params.name, actions.content);
-
-    if (!write.ok) {
-      await common_handler.handleError(req, res, write);
-      return;
-    }
-
-    // Now we have successfully written our new settings let's reutrn the new settings and success
-
-    res.status(201).json(write.content);
+  if (!eventObj.ok) {
+    await common_handler.handleError(req, res, eventObj);
     return;
+  }
 
-  } else if (params.type === "new") {
+  let returnObj = await utils.combineEvents(eventObj.content);
+
+  res.status(200).json(returnObj);
+}
+
+async function deleteAnEvent(req, res) {
+  let params = {
+    eventID: query.eventID(req),
+  };
+
+  // handle auth
+
+  let eventObj = await database.deleteEvent(params.eventID);
+
+  if (!eventObj.ok) {
+    await common_handler.handleError(req, res, eventObj);
+    return;
+  }
+
+  res.status(201).send(); // Lets send an empty response on success to deletion.
+}
+
+async function modifyEvent(req, res) {
+  let params = {
+    eventID: query.eventID(req),
+    task: query.task(req),
+    action: query.action(req),
+  };
+
+  // This intends to have a task of either "add", or "remove"
+  // The action then is the text of an action when task is "add" and is the ID of an action when "remove"
+  // That way we can modify an existing action or add one with no issue.
+  if (params.task === "add") {
+
+  } else if (params.task === "remove") {
 
   } else {
-    await common_handler.handleError(req, res, {
-      ok: false,
-      short: "Server Error",
-      content: "Invalid Type",
-      detail: `modifyEvents Unable to Parse params.type: ${params.type}`
-    });
+    res.status(400).json({ message: "Invalid Task Provided" });
     return;
   }
 }
 
 module.exports = {
   getEvents,
-  modifyEvents,
+  getAnEvent,
+  deleteAnEvent,
+  modifyEvent,
 };

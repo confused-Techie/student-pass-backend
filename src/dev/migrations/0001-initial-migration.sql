@@ -18,7 +18,8 @@ CREATE TABLE staff (
 
 CREATE TABLE district (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(128) NOT NULL
+  name VARCHAR(128) NOT NULL,
+  settings JSONB
 );
 
 -- Create Schools Table
@@ -26,13 +27,21 @@ CREATE TABLE district (
 CREATE TABLE schools (
   id SERIAL PRIMARY KEY,
   name VARCHAR(128) NOT NULL,
-  district SERIAL NOT NULL REFERENCES district(id)
+  district SERIAL NOT NULL REFERENCES district(id),
+  settings JSONB
 );
 
 -- Create Events Table
 
 CREATE TABLE events (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(128) NOT NULL UNIQUE,
-  actions VARCHAR(128)[]
+  event_id SERIAL PRIMARY KEY,
+  event_name VARCHAR(128) NOT NULL UNIQUE
+);
+
+-- Create Actions Table
+
+CREATE TABLE actions (
+  action_id SERIAL PRIMARY KEY,
+  action_name VARCHAR(128),
+  event_id SERIAL NOT NULL REFERENCES events(event_id)
 );

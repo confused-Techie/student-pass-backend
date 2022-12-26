@@ -37,9 +37,9 @@ async function getAllEvents() {
 
     const command = await sqlStorage`
       SELECT *
-      FROM events
+      FROM events AS e INNER JOIN actions AS a ON (a.event_id = e.event_id)
     `;
-
+    console.log(command);
     return command.count !== 0
       ? { ok: true, content: command }
       : {
@@ -58,68 +58,79 @@ async function getAllEvents() {
   }
 }
 
-async function getEventByID(id) {
+async function getSingleEvent(eventID) {
   try {
     sqlStorage ??= setupSQL();
 
     const command = await sqlStorage`
       SELECT *
-      FROM events
-      WHERE id = ${id}
+      FROM events AS e INNER JOIN actions AS a ON (a.event_id = e.event_id)
+      WHERE e.event_id = ${eventID}
     `;
-
+    console.log(command);
     return command.count !== 0
-      ? { ok: true, content: command[0] }
+      ? { ok: true, content: command }
       : {
           ok: false,
-          content: `Event For ID: ${id} Not found`,
+          content: `Event ${eventID} not found: ${command}`,
           short: "Not Found",
-          detail: `getEventByID Failed to lookup event ${id}`
+          detail: `getSingleEvent(${eventID}) Was unable to locate any events.`
         };
+
   } catch(err) {
     return {
       ok: false,
       content: err,
       short: "Server Error",
-      detail: "getEventByID() Caught an error during event lookup"
+      detail: "getSingleEvent() Caught an error during event lookup."
     };
   }
 }
 
-async function setEventByID(id, name, actions) {
-  try {
-    sqlStorage ??= setupSQL();
-    console.log(`${sqlStorage.array(actions)}`);
-    const command = await sqlStorage`
-      UPDATE events
-      SET name = ${name} AND
-      SET actions = ${sqlStorage`'{${actions}}'`}
-      WHERE id = ${id}
-      RETURNING *;
-    `;
+async function deleteEvent(eventID) {
+  sqlStorage ??= setupSQL();
 
-    return command.count !== 0
-      ? { ok: true, content: command[0] }
-      : {
-          ok: false,
-          content: `setEventByID Failed to insert new Data!`,
-          short: "Server Error",
-          detail: "setEventByID Failed to insert new data."
-        };
-  } catch(err) {
-    return {
-      ok: false,
-      content: err,
-      short: "Server Error",
-      detail: "setEventByID() Caught an Error during event write"
-    };
-  }
+  return await sqlStorage
+    .begin(async (sqlTrans) => {
+      // First lets delete from the actions table
+      const commandActions = await sqlTrans`
+        DELETE FROM actions
+        WHERE event_id = ${eventID}
+        RETURNING *;
+      `;
+
+      if (commandActions.count === 0) {
+        throw `Failed to delete actions for: ${eventID}`;
+      }
+
+      // Now lets delete the events
+      const commandEvents = await sqlTrans`
+        DELETE FROM events
+        WHERE event_id = ${eventID}
+        RETURNING *;
+      `;
+
+      if (commandEvents.count === 0) {
+        throw `Failed to delete event: ${eventID}`;
+      }
+
+      return {
+        ok: true,
+        content: `Successfully Deleted Event: ${eventID}`
+      };
+    })
+    .catch((err) => {
+      const msg =
+        typeof err === "string"
+          ? err
+          : `A generic error occured while Deleting ${eventID}`;
+      return { ok: false, content: msg, short: "Server Error", detail: "deleteEvent() Caught an error during event deletion" };
+    });
 }
-
 
 module.exports = {
   shutdownSQL,
   getAllEvents,
-  getEventByID,
-  setEventByID,
+  getSingleEvent,
+  deleteEvent,
 };

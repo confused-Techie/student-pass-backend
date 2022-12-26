@@ -14,11 +14,18 @@ VALUES (
   4, 'San Lauren', 1
 );
 
-INSERT INTO events (name, actions)
+INSERT INTO events (event_name)
 VALUES (
-  'Tardy: 1st Period',
-  '{"call-parent", "print-badge"}'
+  'Tardy: 1st Period'
 ), (
-  'Ditched Lunch',
-  '{"call-parent"}'
+  'Ditched Lunch'
+);
+
+INSERT INTO actions (action_name, event_id)
+VALUES (
+  'call-parent', 1
+), (
+  'print-badge', 1
+), (
+  'print-badge', 2
 );
