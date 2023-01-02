@@ -65,13 +65,28 @@ async function modifyEvent(req, res) {
     action: query.action(req),
   };
 
+  // Handle Auth
+
   // This intends to have a task of either "add", or "remove"
   // The action then is the text of an action when task is "add" and is the ID of an action when "remove"
   // That way we can modify an existing action or add one with no issue.
   if (params.task === "add") {
+    // So we want to add the action specified to the eventID
+
+    // Verify Action is valid
+
+    let addAction = await database.addActionToEvent(params.eventID, params.action);
+
+    if (!addAction.ok) {
+      await common_handler.handleError(req, res, addAction);
+      return;
+    }
+
+    res.status(200).json(addAction.content);
+    return;
 
   } else if (params.task === "remove") {
-
+    // We want to remove an action from the event.
   } else {
     res.status(400).json({ message: "Invalid Task Provided" });
     return;
