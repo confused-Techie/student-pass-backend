@@ -38,7 +38,18 @@ async function getAnEvent(req, res) {
 
   let returnObj = await utils.combineEvents(eventObj.content);
 
-  res.status(200).json(returnObj);
+  // Since utils.combineEvents() returns an array, but this endpoint only returns
+  // a single event, lets ensure our array is sane, then return.
+
+  if (returnObj.length > 1) {
+    await common_handler.handleError(req, res, {
+      message: "Server Error",
+      detail: "combineEvents returned event list from getAnEvent()"
+    });
+    return;
+  }
+
+  res.status(200).json(returnObj[0]);
 }
 
 async function deleteAnEvent(req, res) {
